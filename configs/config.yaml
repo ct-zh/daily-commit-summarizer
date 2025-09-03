@@ -1,0 +1,54 @@
+# Daily Commit Summarizer 配置文件
+
+# Git 相关配置
+git:
+  repo_path: "."                    # Git 仓库路径
+  remote_name: "origin"              # 远程仓库名称
+  default_branch: "main"             # 默认分支
+  exclude_patterns:                   # 排除的文件模式
+    - "*.lock"
+    - "*.log"
+    - "node_modules/**"
+    - ".git/**"
+    - "vendor/**"
+    - "dist/**"
+    - "build/**"
+  max_commits: 100                    # 最大提交数量
+
+# LLM 相关配置
+llm:
+  api_key: ""                        # OpenAI API 密钥 (可通过环境变量 OPENAI_API_KEY 设置)
+  base_url: "https://api.openai.com/v1"  # API 基础 URL
+  model: "gpt-3.5-turbo"             # 使用的模型
+  max_tokens: 4000                    # 最大令牌数
+  temperature: 0.7                    # 温度参数 (0-2)
+  timeout: "30s"                      # 请求超时时间
+  retry_count: 3                      # 重试次数
+
+# 通知相关配置
+notification:
+  enabled: true                       # 是否启用通知
+  lark:
+    webhook_url: ""                   # 飞书 Webhook URL (可通过环境变量 LARK_WEBHOOK_URL 设置)
+    secret: ""                        # 飞书签名密钥 (可通过环境变量 LARK_SECRET 设置)
+    timeout: "10s"                    # 请求超时时间
+
+# 应用相关配置
+app:
+  name: "daily-commit-summarizer"     # 应用名称
+  version: "1.0.0"                   # 应用版本
+  environment: "production"           # 运行环境 (development/testing/staging/production)
+  debug: false                        # 调试模式
+  work_dir: "."                      # 工作目录
+  data_dir: "./data"                 # 数据目录
+
+# 日志相关配置
+logger:
+  level: "info"                      # 日志级别 (debug/info/warn/error/fatal)
+  format: "json"                     # 日志格式 (json/text)
+  output: "stdout"                   # 输出目标 (stdout/file)
+  file_path: "./logs/app.log"        # 日志文件路径 (当 output 为 file 时)
+  max_size: 100                       # 最大文件大小 (MB)
+  max_backups: 3                      # 最大备份数量
+  max_age: 7                          # 最大保留天数
+  compress: true                      # 是否压缩备份文件
