@@ -52,3 +52,7 @@ logger:
   max_backups: 3                      # 最大备份数量
   max_age: 7                          # 最大保留天数
   compress: true                      # 是否压缩备份文件
+
+git_lab:
+  url: ""
+  token: ""
