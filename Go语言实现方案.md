@@ -80,110 +80,197 @@ flowchart TD
 #### 接口定义
 
 ```go
-// internal/config/interfaces.go
+// internal/config/interface.go
 package config
 
-// Loader 定义配置加载器接口
-type Loader interface {
+import "context"
+
+// ConfigLoader 配置加载器接口
+type ConfigLoader interface {
 	// Load 加载配置
-	Load() (*Config, error)
+	Load(ctx context.Context) (*Config, error)
+	// Reload 重新加载配置
+	Reload(ctx context.Context) (*Config, error)
+	// Watch 监听配置变化
+	Watch(ctx context.Context, callback func(*Config)) error
+	// GetConfig 获取当前配置
+	GetConfig() *Config
+	// IsLoaded 检查配置是否已加载
+	IsLoaded() bool
+}
+
+// ConfigValidator 配置验证器接口
+type ConfigValidator interface {
+	// Validate 验证配置
+	Validate(config *Config) error
+}
+
+// ConfigProvider 配置提供者接口
+type ConfigProvider interface {
+	// GetConfig 获取当前配置
+	GetConfig() *Config
+	// IsLoaded 检查配置是否已加载
+	IsLoaded() bool
 }
 ```
 
 #### 数据结构
 
 ```go
-// internal/config/config.go
-package config
+// internal/config/models.go
 
-import (
-	"errors"
-	"os"
-	"strconv"
-	"time"
-)
-
-// Config 存储应用程序配置
+// Config 应用配置结构
 type Config struct {
-	OpenAIBaseURL     string
-	OpenAIAPIKey      string
-	LarkWebhookURL    string
-	Repo              string
-	ModelName         string
-	PerBranchLimit    int
-	DiffChunkMaxChars int
-	TimeZone          *time.Location
-	MaxConcurrency    int
-	RetryAttempts     int
-	RetryDelay        time.Duration
+	// Git 配置
+	Git GitConfig `json:"git" yaml:"git"`
+	// LLM 配置
+	LLM LLMConfig `json:"llm" yaml:"llm"`
+	// 通知配置
+	Notification NotificationConfig `json:"notification" yaml:"notification"`
+	// 应用配置
+	App AppConfig `json:"app" yaml:"app"`
+	// 日志配置
+	Logger LoggerConfig `json:"logger" yaml:"logger"`
 }
 
-// Validate 验证配置
-func (c *Config) Validate() error {
-	if c.OpenAIAPIKey == "" {
-		return errors.New("missing OPENAI_API_KEY")
-	}
-	return nil
+// GitConfig Git相关配置
+type GitConfig struct {
+	// 仓库路径
+	RepoPath string `json:"repo_path" yaml:"repo_path"`
+	// 远程仓库名称
+	RemoteName string `json:"remote_name" yaml:"remote_name"`
+	// 默认分支
+	DefaultBranch string `json:"default_branch" yaml:"default_branch"`
+	// 排除的文件模式
+	ExcludePatterns []string `json:"exclude_patterns" yaml:"exclude_patterns"`
+	// 最大提交数量
+	MaxCommits int `json:"max_commits" yaml:"max_commits"`
+}
+
+// LLMConfig LLM相关配置
+type LLMConfig struct {
+	// API密钥
+	APIKey string `json:"api_key" yaml:"api_key"`
+	// API基础URL
+	BaseURL string `json:"base_url" yaml:"base_url"`
+	// 模型名称
+	Model string `json:"model" yaml:"model"`
+	// 最大令牌数
+	MaxTokens int `json:"max_tokens" yaml:"max_tokens"`
+	// 温度参数
+	Temperature float64 `json:"temperature" yaml:"temperature"`
+	// 请求超时时间
+	Timeout time.Duration `json:"timeout" yaml:"timeout"`
+	// 重试次数
+	RetryCount int `json:"retry_count" yaml:"retry_count"`
+}
+
+// NotificationConfig 通知相关配置
+type NotificationConfig struct {
+	// 飞书配置
+	Lark LarkConfig `json:"lark" yaml:"lark"`
+	// 是否启用通知
+	Enabled bool `json:"enabled" yaml:"enabled"`
+}
+
+// LarkConfig 飞书通知配置
+type LarkConfig struct {
+	// Webhook URL
+	WebhookURL string `json:"webhook_url" yaml:"webhook_url"`
+	// 签名密钥
+	Secret string `json:"secret" yaml:"secret"`
+	// 超时时间
+	Timeout time.Duration `json:"timeout" yaml:"timeout"`
+}
+
+// AppConfig 应用相关配置
+type AppConfig struct {
+	// 应用名称
+	Name string `json:"name" yaml:"name"`
+	// 应用版本
+	Version string `json:"version" yaml:"version"`
+	// 环境
+	Environment string `json:"environment" yaml:"environment"`
+	// 调试模式
+	Debug bool `json:"debug" yaml:"debug"`
+	// 工作目录
+	WorkDir string `json:"work_dir" yaml:"work_dir"`
+	// 数据目录
+	DataDir string `json:"data_dir" yaml:"data_dir"`
+}
+
+// LoggerConfig 日志相关配置
+type LoggerConfig struct {
+	// 日志级别
+	Level string `json:"level" yaml:"level"`
+	// 日志格式 (json/text)
+	Format string `json:"format" yaml:"format"`
+	// 输出目标 (stdout/file)
+	Output string `json:"output" yaml:"output"`
+	// 日志文件路径
+	FilePath string `json:"file_path" yaml:"file_path"`
+	// 最大文件大小(MB)
+	MaxSize int `json:"max_size" yaml:"max_size"`
+	// 最大备份数量
+	MaxBackups int `json:"max_backups" yaml:"max_backups"`
+	// 最大保留天数
+	MaxAge int `json:"max_age" yaml:"max_age"`
+	// 是否压缩
+	Compress bool `json:"compress" yaml:"compress"`
 }
 ```
 
 #### 实现
 
+##### 配置加载器
+
 ```go
 // internal/config/loader.go
+
+// DefaultConfigLoader 默认配置加载器
+type DefaultConfigLoader struct {
+}
+
+// NewDefaultConfigLoader 创建默认配置加载器
+func NewDefaultConfigLoader(configPath string) *DefaultConfigLoader {
+}
+
+// Load 加载配置
+func (l *DefaultConfigLoader) Load(ctx context.Context) (*Config, error) {
+}
+
+// Reload 重新加载配置
+func (l *DefaultConfigLoader) Reload(ctx context.Context) (*Config, error) {
+}
+
+// Watch 监听配置变化
+func (l *DefaultConfigLoader) Watch(ctx context.Context, callback func(*Config)) error {
+}
+
+// GetConfig 获取当前配置
+func (l *DefaultConfigLoader) GetConfig() *Config {
+}
+
+// IsLoaded 检查配置是否已加载
+func (l *DefaultConfigLoader) IsLoaded() bool {
+}
+```
+
+##### 配置验证器
+
+```go
+// internal/config/validator.go
 package config
 
-import (
-	"os"
-	"strconv"
-	"time"
-)
+import "fmt"
 
-// EnvLoader 从环境变量加载配置
-type EnvLoader struct{}
+// DefaultConfigValidator 默认配置验证器
+type DefaultConfigValidator struct{}
 
-// NewEnvLoader 创建环境变量配置加载器
-func NewEnvLoader() *EnvLoader {
-	return &EnvLoader{}
-}
-
-// Load 从环境变量加载配置
-func (l *EnvLoader) Load() (*Config, error) {
-	perBranchLimit, _ := strconv.Atoi(getEnvOrDefault("PER_BRANCH_LIMIT", "200"))
-	diffChunkMaxChars, _ := strconv.Atoi(getEnvOrDefault("DIFF_CHUNK_MAX_CHARS", "80000"))
-	maxConcurrency, _ := strconv.Atoi(getEnvOrDefault("MAX_CONCURRENCY", "5"))
-	retryAttempts, _ := strconv.Atoi(getEnvOrDefault("RETRY_ATTEMPTS", "3"))
-	retryDelay, _ := time.ParseDuration(getEnvOrDefault("RETRY_DELAY", "1s"))
-	
-	// 解析时区
-	tzName := getEnvOrDefault("TZ", "UTC")
-	loc, err := time.LoadLocation(tzName)
-	if err != nil {
-		loc = time.UTC
-	}
-	
-	return &Config{
-		OpenAIBaseURL:     getEnvOrDefault("OPENAI_BASE_URL", "https://api.openai.com"),
-		OpenAIAPIKey:      getEnvOrDefault("OPENAI_API_KEY", ""),
-		LarkWebhookURL:    getEnvOrDefault("LARK_WEBHOOK_URL", ""),
-		Repo:              getEnvOrDefault("REPO", ""),
-		ModelName:         getEnvOrDefault("MODEL_NAME", "gpt-4.1-mini"),
-		PerBranchLimit:    perBranchLimit,
-		DiffChunkMaxChars: diffChunkMaxChars,
-		TimeZone:          loc,
-		MaxConcurrency:    maxConcurrency,
-		RetryAttempts:     retryAttempts,
-		RetryDelay:        retryDelay,
-	}, nil
-}
-
-// 获取环境变量，如果不存在则返回默认值
-func getEnvOrDefault(key, defaultValue string) string {
-	value, exists := os.LookupEnv(key)
-	if !exists {
-		return defaultValue
-	}
-	return value
+// Validate 验证配置
+func (v *DefaultConfigValidator) Validate(config *Config) error {
+	// 实现省略
+	return nil
 }
 ```
 
